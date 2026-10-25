@@ -1,15 +1,236 @@
 :root {
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  color: #1f2937;
-  background-color: #f8fafc;
+  color: #4d4036;
+  background-color: #fbf7ee;
 }
 
 body {
   min-width: 320px;
   margin: 0;
-  background-color: #f8fafc;
+  background:
+    radial-gradient(circle at 8% 8%, rgba(207, 225, 202, 0.22), transparent 24rem),
+    #fbf7ee;
+}
+
+.site-header {
+  background: rgba(255, 252, 245, 0.9);
+  border-bottom: 1px solid #eee5d6;
+}
+
+.brand-mark {
+  color: #76513e;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.brand-mark:hover {
+  color: #5f3f30;
+}
+
+.brand-icon {
+  align-items: center;
+  background: #d5e5d0;
+  border-radius: 0.7rem;
+  display: inline-flex;
+  font-size: 1.1rem;
+  height: 2rem;
+  justify-content: center;
+  width: 2rem;
+}
+
+.header-badge {
+  background: #dfeeda;
+  border-radius: 999px;
+  color: #456141;
+  font-size: 0.85rem;
+  margin-left: auto;
+  padding: 0.45rem 0.85rem;
 }
 
 .hero-panel {
-  background: linear-gradient(135deg, #e0f2fe, #f0fdf4);
+  align-items: center;
+  background:
+    radial-gradient(circle at 82% 18%, rgba(244, 202, 133, 0.26), transparent 12rem),
+    linear-gradient(120deg, #f4ead5 0%, #f8f2e5 55%, #e6f0e3 100%);
+  box-shadow: 0 1.5rem 3.5rem rgba(110, 82, 54, 0.1);
+  display: flex;
+  gap: 3rem;
+  min-height: 34rem;
+  overflow: hidden;
+  position: relative;
+}
+
+.hero-copy {
+  flex: 0 1 40%;
+  max-width: 34rem;
+  position: relative;
+  z-index: 1;
+}
+
+.hero-copy h1 {
+  color: #76513e;
+  font-size: clamp(2.25rem, 3.8vw, 3.35rem);
+  line-height: 1.12;
+}
+
+.eyebrow {
+  color: #648260;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.hero-lead {
+  color: #695d50;
+  font-size: 1.2rem;
+  max-width: 36rem;
+}
+
+.btn-primary {
+  background-color: #d58a3c;
+  border-color: #d58a3c;
+}
+
+.btn-primary:hover,
+.btn-primary:focus-visible {
+  background-color: #b96f2b;
+  border-color: #b96f2b;
+}
+
+.hero-illustration {
+  align-items: center;
+  background: rgba(255, 252, 245, 0.32);
+  border: 1px solid rgba(255, 252, 245, 0.7);
+  border-radius: 1.75rem;
+  display: flex;
+  flex: 1 1 60%;
+  justify-content: center;
+  min-width: 0;
+  overflow: hidden;
+  padding: 1.35rem;
+  position: relative;
+}
+
+.hero-illustration img {
+  animation: gentle-float 7s ease-in-out infinite;
+  border-radius: 1.25rem;
+  display: block;
+  height: auto;
+  max-height: 31rem;
+  max-width: 100%;
+  object-fit: contain;
+  width: min(100%, 42rem);
+}
+
+@keyframes gentle-float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-0.45rem);
+  }
+}
+
+.section-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+}
+
+.section-heading h2 {
+  color: #5f4031;
+  font-family: inherit;
+}
+
+.explore-card {
+  background: rgba(255, 253, 248, 0.82);
+  border: 1px solid #eee5d6;
+  border-radius: 1.15rem;
+  box-shadow: 0 0.5rem 1.5rem rgba(110, 82, 54, 0.06);
+  padding: 1.4rem;
+  transition: transform 180ms ease, box-shadow 180ms ease;
+}
+
+.explore-card:hover {
+  box-shadow: 0 0.8rem 1.8rem rgba(110, 82, 54, 0.12);
+  transform: translateY(-0.2rem);
+}
+
+.explore-card p {
+  color: #75695d;
+}
+
+.card-icon {
+  color: #a87532;
+  display: block;
+  font-size: 0.9rem;
+  height: 1rem;
+  margin-bottom: 1.1rem;
+  position: relative;
+  width: 1rem;
+}
+
+.card-icon::before,
+.about-icon::before {
+  content: "★";
+  left: 0;
+  position: absolute;
+  top: 0;
+}
+
+.about-panel {
+  align-items: center;
+  background: #f5ead1;
+  border: 1px solid #ead9b8;
+  display: flex;
+  justify-content: space-between;
+}
+
+.about-icon {
+  color: #a87532;
+  display: block;
+  font-size: 0.9rem;
+  height: 1rem;
+  margin-left: 1rem;
+  position: relative;
+  width: 1rem;
+}
+
+.site-footer {
+  background: rgba(255, 252, 245, 0.7);
+}
+
+@media (max-width: 767.98px) {
+  .hero-panel {
+    display: block;
+    min-height: 0;
+  }
+
+  .hero-illustration {
+    padding: 2rem 0 0.5rem;
+  }
+
+  .hero-illustration img {
+    max-height: 24rem;
+  }
+
+  .hero-lead {
+    font-size: 1.05rem;
+  }
+
+  .about-panel {
+    align-items: flex-start;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-illustration img {
+    animation: none;
+  }
+
+  .explore-card {
+    transition: none;
+  }
 }

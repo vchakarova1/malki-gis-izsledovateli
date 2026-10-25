@@ -1,0 +1,145 @@
+.map-page-shell {
+  background: #fbf7ee;
+}
+
+.header-badge {
+  text-decoration: none;
+}
+
+.map-back-link,
+.map-external-link {
+  color: #76513e;
+  font-size: 0.92rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.map-back-link:hover,
+.map-back-link:focus-visible,
+.map-external-link:hover,
+.map-external-link:focus-visible {
+  color: #b96f2b;
+  text-decoration: underline;
+}
+
+.map-intro {
+  max-width: 48rem;
+}
+
+.map-intro h1 {
+  color: #76513e;
+  font-size: clamp(2.25rem, 5vw, 4rem);
+  line-height: 1.08;
+}
+
+.map-subtitle {
+  color: #695d50;
+  font-size: 1.2rem;
+}
+
+.map-card {
+  background: rgba(255, 253, 248, 0.88);
+  border: 1px solid #eee5d6;
+  border-radius: 1.35rem;
+  box-shadow: 0 1rem 2.5rem rgba(110, 82, 54, 0.08);
+  overflow: hidden;
+}
+
+.map-card-heading,
+.map-steps-heading {
+  align-items: end;
+  display: flex;
+  justify-content: space-between;
+  padding: 1.25rem 1.35rem;
+}
+
+.map-card-heading h2,
+.map-steps-heading h2 {
+  color: #5f4031;
+}
+
+.map-frame-wrap {
+  background: #e6f0e3;
+  min-height: 34rem;
+  position: relative;
+}
+
+.map-frame-wrap iframe {
+  border: 0;
+  display: block;
+  height: min(70vh, 48rem);
+  min-height: 34rem;
+  width: 100%;
+}
+
+.map-fallback {
+  align-items: center;
+  background: #fbf7ee;
+  color: #695d50;
+  display: flex;
+  flex-direction: column;
+  inset: 0;
+  justify-content: center;
+  padding: 2rem;
+  position: absolute;
+  text-align: center;
+}
+
+.map-fallback[hidden] {
+  display: none;
+}
+
+.map-steps {
+  padding-bottom: 1rem;
+}
+
+.map-step {
+  background: rgba(255, 253, 248, 0.82);
+  border: 1px solid #eee5d6;
+  border-radius: 1rem;
+  padding: 1.25rem;
+}
+
+.map-step h3 {
+  color: #5f4031;
+  margin-bottom: 0.45rem;
+}
+
+.map-step p {
+  color: #75695d;
+}
+
+.map-step-number {
+  align-items: center;
+  background: #dfeeda;
+  border-radius: 50%;
+  color: #456141;
+  display: inline-flex;
+  font-weight: 800;
+  height: 2rem;
+  justify-content: center;
+  margin-bottom: 0.85rem;
+  width: 2rem;
+}
+
+@media (max-width: 767.98px) {
+  .map-card-heading,
+  .map-steps-heading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.8rem;
+  }
+
+  .map-back-link {
+    font-size: 0.85rem;
+  }
+
+  .map-frame-wrap,
+  .map-frame-wrap iframe {
+    min-height: 28rem;
+  }
+
+  .map-frame-wrap iframe {
+    height: 70vh;
+  }
+}

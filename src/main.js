@@ -12,7 +12,7 @@ app.innerHTML = `
           <span class="brand-icon" aria-hidden="true">🧭</span>
           <span>Малки ГИС изследователи</span>
         </a>
-        <span class="header-badge d-none d-md-inline-flex">Учим чрез откриване</span>
+        <a class="header-badge d-none d-md-inline-flex" href="map.html">Учим чрез откриване</a>
       </nav>
     </header>
     <main class="container flex-grow-1 py-4 py-md-5">
@@ -26,7 +26,7 @@ app.innerHTML = `
             Изследвай места, истории и идеи. Всяко откритие започва с един въпрос.
           </p>
           <div class="d-flex flex-wrap gap-3" aria-label="Основни действия">
-            <a class="btn btn-primary btn-lg px-4" href="#explore">
+            <a class="btn btn-primary btn-lg px-4" href="map.html">
               Започни приключението!
             </a>
             <a class="btn btn-light btn-lg px-4" href="#about">Как работи?</a>

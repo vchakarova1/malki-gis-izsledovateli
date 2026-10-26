@@ -8,14 +8,26 @@
 
 .map-back-link,
 .map-external-link {
-  color: #76513e;
+  color: #456141;
   font-size: 0.92rem;
   font-weight: 700;
   text-decoration: none;
 }
 
+.map-back-link {
+  background: #dfeeda;
+  border-radius: 999px;
+  margin-left: auto;
+  padding: 0.45rem 0.85rem;
+}
+
 .map-back-link:hover,
-.map-back-link:focus-visible,
+.map-back-link:focus-visible {
+  background: #cfe4c8;
+  color: #385235;
+  text-decoration: none;
+}
+
 .map-external-link:hover,
 .map-external-link:focus-visible {
   color: #b96f2b;

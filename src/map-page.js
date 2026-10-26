@@ -14,7 +14,7 @@ app.innerHTML = `
           <span class="brand-icon" aria-hidden="true">🧭</span>
           <span>Малки ГИС изследователи</span>
         </a>
-        <a class="map-back-link" href="index.html">← Към началната страница</a>
+        <a class="map-back-link" href="index.html">Към началната страница</a>
       </nav>
     </header>
 

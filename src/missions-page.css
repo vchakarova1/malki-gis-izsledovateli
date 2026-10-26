@@ -1,0 +1,122 @@
+.missions-page-shell {
+  background: #fbf7ee;
+}
+
+.missions-map-link {
+  margin-left: auto;
+}
+
+.missions-hero {
+  align-items: center;
+  background:
+    radial-gradient(circle at 78% 18%, rgba(244, 202, 133, 0.24), transparent 12rem),
+    linear-gradient(120deg, #f4ead5 0%, #f8f2e5 55%, #e6f0e3 100%);
+  border-radius: 1.75rem;
+  box-shadow: 0 1.5rem 3.5rem rgba(110, 82, 54, 0.1);
+  display: flex;
+  gap: 3rem;
+  min-height: 25rem;
+  overflow: hidden;
+  padding: clamp(1.5rem, 4vw, 3.5rem);
+}
+
+.missions-hero-copy {
+  flex: 0 1 54%;
+  max-width: 38rem;
+}
+
+.missions-hero h1 {
+  color: #76513e;
+  font-size: clamp(2.25rem, 5vw, 4rem);
+  line-height: 1.08;
+}
+
+.missions-hero-subtitle {
+  color: #5f4031;
+  font-size: clamp(1.3rem, 2.5vw, 1.7rem);
+  font-weight: 700;
+  margin-bottom: 0.85rem;
+}
+
+.missions-hero-lead {
+  color: #695d50;
+  font-size: 1.1rem;
+  line-height: 1.7;
+  max-width: 35rem;
+}
+
+.missions-hero-visual {
+  background: rgba(255, 252, 245, 0.46);
+  border: 1px solid rgba(255, 252, 245, 0.78);
+  border-radius: 1.35rem;
+  display: flex;
+  flex: 1 1 46%;
+  justify-content: center;
+  min-height: 18rem;
+  overflow: hidden;
+  padding: 1rem;
+  position: relative;
+}
+
+.missions-hero-visual img {
+  animation: gentle-float 7s ease-in-out infinite;
+  border-radius: 1.25rem;
+  display: block;
+  height: auto;
+  max-width: 100%;
+  object-fit: contain;
+  overflow: hidden;
+  width: 100%;
+}
+
+.mission-card {
+  background: rgba(255, 253, 248, 0.84);
+  border: 1px solid #eee5d6;
+  border-radius: 1.15rem;
+  box-shadow: 0 0.5rem 1.5rem rgba(110, 82, 54, 0.06);
+  padding: 1.5rem;
+}
+
+.mission-card-mark {
+  color: #a87532;
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  margin-bottom: 1rem;
+}
+
+.mission-card h3 {
+  color: #5f4031;
+  font-size: 1.25rem;
+  margin-bottom: 0.65rem;
+}
+
+.mission-card p {
+  color: #75695d;
+  line-height: 1.6;
+}
+
+@media (max-width: 767.98px) {
+  .missions-hero {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 2rem;
+    padding: 1.5rem;
+  }
+
+  .missions-hero-visual {
+    min-height: 14rem;
+    padding: 0.75rem;
+  }
+
+  .missions-map-link {
+    font-size: 0.85rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .missions-hero-visual img {
+    animation: none;
+  }
+}

@@ -5,7 +5,8 @@ export default defineConfig({
     rollupOptions: {
       input: {
         main: 'index.html',
-        map: 'map.html'
+        map: 'map.html',
+        missions: 'missions.html'
       }
     }
   },

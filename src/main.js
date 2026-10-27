@@ -25,11 +25,15 @@ app.innerHTML = `
           <p class="hero-lead mb-4">
             Изследвай места, истории и идеи. Всяко откритие започва с един въпрос.
           </p>
-          <div class="d-flex flex-wrap gap-3" aria-label="Основни действия">
-            <a class="btn btn-primary btn-lg px-4" href="map.html">
-              Започни приключението!
+          <div class="hero-actions" aria-label="Основни действия">
+            <a class="btn hero-action hero-action-primary" href="map.html">
+              <span class="hero-action-icon" aria-hidden="true">⌖</span>
+              <span>Започни приключението!</span>
             </a>
-            <a class="btn btn-light btn-lg px-4" href="#explore">Как работи?</a>
+            <a class="btn hero-action hero-action-secondary" href="#explore">
+              <span class="hero-action-icon" aria-hidden="true">✦</span>
+              <span>Как работим?</span>
+            </a>
           </div>
         </div>
         <div class="hero-illustration">

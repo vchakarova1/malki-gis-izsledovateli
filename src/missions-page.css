@@ -45,6 +45,63 @@
   max-width: 35rem;
 }
 
+.missions-hero-actions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: flex-start;
+}
+
+.missions-hero-button {
+  align-items: center;
+  border-radius: 0.75rem;
+  display: inline-flex;
+  font-size: 0.92rem;
+  font-weight: 700;
+  gap: 0.45rem;
+  justify-content: center;
+  min-height: 2.7rem;
+  padding: 0.6rem 0.9rem;
+  white-space: nowrap;
+}
+
+.missions-hero-button svg {
+  fill: none;
+  height: 1rem;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.7;
+  width: 1rem;
+}
+
+.missions-hero-button-primary {
+  background: #d58a3c;
+  border: 1px solid #d58a3c;
+  color: #fffaf0;
+}
+
+.missions-hero-button-primary:hover,
+.missions-hero-button-primary:focus-visible {
+  background: #b96f2b;
+  border-color: #b96f2b;
+  color: #fffaf0;
+}
+
+.missions-hero-button-secondary {
+  background: rgba(255, 252, 245, 0.72);
+  border: 1px solid #b96f2b;
+  color: #76513e;
+}
+
+.missions-hero-button-secondary:hover,
+.missions-hero-button-secondary:focus-visible {
+  background: #f4ead5;
+  border-color: #a36126;
+  color: #5f4031;
+}
+
 .missions-hero-visual {
   background: rgba(255, 252, 245, 0.46);
   border: 1px solid rgba(255, 252, 245, 0.78);
@@ -54,13 +111,13 @@
   justify-content: center;
   min-height: 18rem;
   overflow: hidden;
-  padding: 1rem;
+  padding: 0.6rem;
   position: relative;
 }
 
 .missions-hero-visual img {
   animation: gentle-float 7s ease-in-out infinite;
-  border-radius: 1.25rem;
+  border-radius: 1.35rem;
   display: block;
   height: auto;
   max-width: 100%;
@@ -69,12 +126,100 @@
   width: 100%;
 }
 
+.roles-section {
+  padding: 0.25rem 0;
+  scroll-margin-top: 1rem;
+}
+
+.roles-heading {
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.roles-heading h2 {
+  color: #5f4031;
+}
+
+.roles-intro {
+  color: #695d50;
+}
+
+.role-panel {
+  background: rgba(255, 253, 248, 0.84);
+  border: 1px solid #eee5d6;
+  border-radius: 1.15rem;
+  box-shadow: 0 0.5rem 1.5rem rgba(110, 82, 54, 0.06);
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem;
+  text-align: center;
+}
+
+.role-icon {
+  align-items: center;
+  background: #dfeeda;
+  border-radius: 50%;
+  color: #456141;
+  display: inline-flex;
+  height: 3.5rem;
+  justify-content: center;
+  margin-bottom: 1rem;
+  width: 3.5rem;
+}
+
+.role-icon svg {
+  fill: none;
+  height: 1.8rem;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.7;
+  width: 1.8rem;
+}
+
+.role-panel h3 {
+  color: #5f4031;
+  font-size: 1.25rem;
+  margin-bottom: 0.55rem;
+}
+
+.role-panel p {
+  color: #75695d;
+  line-height: 1.55;
+}
+
+.role-button {
+  background: #d58a3c;
+  border: 1px solid #d58a3c;
+  border-radius: 0.75rem;
+  color: #fffaf0;
+  font-weight: 700;
+  margin-top: auto;
+  padding: 0.65rem 1rem;
+}
+
+.role-button:hover,
+.role-button:focus-visible {
+  background: #b96f2b;
+  border-color: #b96f2b;
+  color: #fffaf0;
+}
+
+.role-status {
+  min-height: 1.5rem;
+  margin: 0.75rem 0 0;
+}
+
 .mission-card {
   background: rgba(255, 253, 248, 0.84);
   border: 1px solid #eee5d6;
   border-radius: 1.15rem;
   box-shadow: 0 0.5rem 1.5rem rgba(110, 82, 54, 0.06);
   padding: 1.5rem;
+}
+
+#mission-directions {
+  scroll-margin-top: 1rem;
 }
 
 .mission-card-mark {
@@ -107,7 +252,7 @@
 
   .missions-hero-visual {
     min-height: 14rem;
-    padding: 0.75rem;
+    padding: 0.45rem;
   }
 
   .missions-map-link {

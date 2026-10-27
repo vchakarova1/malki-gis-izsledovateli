@@ -88,15 +88,57 @@ body {
   max-width: 36rem;
 }
 
-.btn-primary {
-  background-color: #d58a3c;
-  border-color: #d58a3c;
+.hero-actions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+  justify-content: flex-start;
 }
 
-.btn-primary:hover,
-.btn-primary:focus-visible {
+.hero-action {
+  align-items: center;
+  border-radius: 0.75rem;
+  display: inline-flex;
+  font-size: 0.9rem;
+  font-weight: 700;
+  gap: 0.4rem;
+  justify-content: center;
+  min-height: 2.65rem;
+  padding: 0.55rem 0.75rem;
+  white-space: nowrap;
+}
+
+.hero-action-primary {
+  background-color: #d58a3c;
+  border-color: #d58a3c;
+  color: #fffaf0;
+}
+
+.hero-action-primary:hover,
+.hero-action-primary:focus-visible {
   background-color: #b96f2b;
   border-color: #b96f2b;
+  color: #fffaf0;
+}
+
+.hero-action-secondary {
+  background-color: rgba(255, 252, 245, 0.7);
+  border: 1px solid #b96f2b;
+  color: #76513e;
+}
+
+.hero-action-secondary:hover,
+.hero-action-secondary:focus-visible {
+  background-color: #f4ead5;
+  border-color: #a36126;
+  color: #5f4031;
+}
+
+.hero-action-icon {
+  color: currentColor;
+  font-size: 1rem;
+  line-height: 1;
 }
 
 .hero-illustration {

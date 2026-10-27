@@ -71,6 +71,9 @@ When implementing this integration:
 
 Keep DB migrations in sync.
 
+For files matched by the Supabase-specific workspace instructions, also follow
+[supabase.instructions.md](instructions/supabase.instructions.md).
+
 The mandatory migration workflow is:
 
 1. **First create local SQL files to hold migrations.**

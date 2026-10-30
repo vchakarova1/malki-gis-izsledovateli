@@ -1,0 +1,4 @@
+# Local Supabase CLI project configuration.
+# This file links the repository to the existing project; it does not apply
+# migrations or change the remote database.
+project_id = "ovwcuthmjfdzlsxoemaz"

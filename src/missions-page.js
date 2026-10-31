@@ -76,7 +76,7 @@ app.innerHTML = `
               </div>
               <h3>За ученици</h3>
               <p>Откривай, учи и създавай свои идеи.</p>
-              <button class="role-button" type="button" data-role="ученици">
+              <button class="role-button" type="button" data-role="ученици" data-auth-link>
                 Вход за ученици
               </button>
               <p class="role-status" aria-live="polite"></p>
@@ -180,6 +180,11 @@ app.innerHTML = `
 
 document.querySelectorAll('.role-button').forEach((button) => {
   button.addEventListener('click', () => {
+    if (button.hasAttribute('data-auth-link')) {
+      window.location.href = 'auth.html';
+      return;
+    }
+
     const status = button.closest('.role-panel').querySelector('.role-status');
     status.textContent = `Входът за ${button.dataset.role} предстои.`;
   });

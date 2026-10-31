@@ -211,6 +211,26 @@ body {
   transition: box-shadow 180ms ease;
 }
 
+.explore-card--1 {
+  background: #fffaf2;
+  border-color: #eee3d2;
+}
+
+.explore-card--2 {
+  background: #e8f2e5;
+  border-color: #d3e4cf;
+}
+
+.explore-card--3 {
+  background: #f8e5e2;
+  border-color: #efd0cb;
+}
+
+.explore-card--4 {
+  background: #e5f1f8;
+  border-color: #cfe3ee;
+}
+
 .explore-card.is-active {
   display: block;
 }

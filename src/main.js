@@ -127,7 +127,9 @@ const renderCarousel = () => {
   exploreTrack.innerHTML = learningPaths
     .map(
       (path, index) => `
-        <article class="explore-card${index === activePath ? ' is-active' : ''}" tabindex="${
+        <article class="explore-card explore-card--${index + 1}${
+          index === activePath ? ' is-active' : ''
+        }" tabindex="${
           index === activePath ? '0' : '-1'
         }" ${
           index === activePath ? '' : 'aria-hidden="true"'

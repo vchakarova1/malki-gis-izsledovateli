@@ -1,0 +1,265 @@
+.student-page-shell {
+  background:
+    radial-gradient(circle at 8% 8%, rgba(207, 225, 202, 0.22), transparent 24rem),
+    #fbf7ee;
+}
+
+.student-intro {
+  max-width: 48rem;
+}
+
+.student-intro h1 {
+  color: #76513e;
+  font-size: clamp(2.25rem, 5vw, 4rem);
+  line-height: 1.08;
+}
+
+.student-status {
+  color: #385235;
+}
+
+.student-status-error,
+.student-message-error {
+  background: #f8e5e2;
+  border-radius: 0.7rem;
+  color: #7d332c;
+  padding: 0.75rem 0.9rem;
+}
+
+.student-map-card,
+.student-form-card,
+.student-routes-card {
+  background: rgba(255, 253, 248, 0.9);
+  border: 1px solid #eee5d6;
+  border-radius: 1.35rem;
+  box-shadow: 0 1rem 2.5rem rgba(110, 82, 54, 0.08);
+  overflow: hidden;
+}
+
+.student-section-heading {
+  align-items: end;
+  display: flex;
+  justify-content: space-between;
+  padding: 1.25rem 1.35rem;
+}
+
+.student-section-heading h2 {
+  color: #5f4031;
+}
+
+.student-external-link {
+  color: #456141;
+  font-size: 0.92rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.student-external-link:hover,
+.student-external-link:focus-visible {
+  color: #b96f2b;
+  text-decoration: underline;
+}
+
+.student-map-frame-wrap {
+  background: #e6f0e3;
+  min-height: 30rem;
+  position: relative;
+}
+
+.student-map-frame-wrap iframe {
+  border: 0;
+  display: block;
+  height: min(70vh, 48rem);
+  min-height: 30rem;
+  width: 100%;
+}
+
+.student-map-fallback {
+  align-items: center;
+  background: #fbf7ee;
+  color: #695d50;
+  display: flex;
+  flex-direction: column;
+  inset: 0;
+  justify-content: center;
+  padding: 2rem;
+  position: absolute;
+  text-align: center;
+}
+
+.student-map-fallback[hidden] {
+  display: none;
+}
+
+.student-map-help {
+  color: #75695d;
+  padding: 0.9rem 1.35rem 1.15rem;
+}
+
+.student-layout {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.student-form-card,
+.student-routes-card {
+  overflow: visible;
+  padding-bottom: 1.35rem;
+}
+
+.student-form-card form,
+.routes-list {
+  padding: 0 1.35rem;
+}
+
+.student-mode,
+.route-status {
+  background: #e8f2e5;
+  border-radius: 999px;
+  color: #456141;
+  font-size: 0.82rem;
+  font-weight: 700;
+  padding: 0.35rem 0.65rem;
+  white-space: nowrap;
+}
+
+.student-field-help,
+.student-muted,
+.route-item-date {
+  color: #75695d;
+  font-size: 0.92rem;
+}
+
+.stops-fieldset {
+  border: 0;
+  margin: 0 0 1rem;
+  padding: 0;
+}
+
+.stop-entry {
+  background: #fffaf2;
+  border: 1px solid #eee3d2;
+  border-radius: 0.9rem;
+  margin-bottom: 0.8rem;
+  padding: 0.95rem;
+}
+
+.stop-entry-heading,
+.route-item-heading {
+  align-items: center;
+  display: flex;
+  gap: 0.75rem;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.stop-entry-heading h3,
+.route-item h3 {
+  color: #5f4031;
+}
+
+.stop-remove {
+  background: transparent;
+  border: 0;
+  color: #7d332c;
+  font-size: 0.85rem;
+  font-weight: 700;
+  padding: 0.2rem;
+}
+
+.student-primary-action,
+.student-submit-action,
+.student-secondary-action {
+  border-radius: 0.75rem;
+  font-weight: 700;
+  padding: 0.65rem 0.9rem;
+}
+
+.student-primary-action,
+.student-submit-action {
+  border: 1px solid #d58a3c;
+  color: #fffaf0;
+}
+
+.student-primary-action {
+  background: #d58a3c;
+}
+
+.student-submit-action {
+  background: #648260;
+  border-color: #648260;
+}
+
+.student-primary-action:hover,
+.student-primary-action:focus-visible {
+  background: #b96f2b;
+  border-color: #b96f2b;
+}
+
+.student-submit-action:hover,
+.student-submit-action:focus-visible {
+  background: #456141;
+  border-color: #456141;
+}
+
+.student-secondary-action {
+  background: #fffdf8;
+  border: 1px solid #b96f2b;
+  color: #76513e;
+}
+
+.student-secondary-action:hover,
+.student-secondary-action:focus-visible {
+  background: #f4ead5;
+  color: #5f4031;
+}
+
+.student-form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+}
+
+.student-form-actions button {
+  flex: 1 1 10rem;
+}
+
+.student-message {
+  margin-bottom: 0.9rem;
+}
+
+.student-message-success {
+  background: #e8f2e5;
+  border-radius: 0.7rem;
+  color: #385235;
+  padding: 0.75rem 0.9rem;
+}
+
+.route-item {
+  background: #fffaf2;
+  border: 1px solid #eee3d2;
+  border-radius: 0.9rem;
+  margin-bottom: 0.8rem;
+  padding: 0.95rem;
+}
+
+.route-item-date {
+  margin-bottom: 0.8rem;
+}
+
+@media (max-width: 767.98px) {
+  .student-section-heading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.8rem;
+  }
+
+  .student-map-frame-wrap,
+  .student-map-frame-wrap iframe {
+    min-height: 26rem;
+  }
+
+  .student-map-frame-wrap iframe {
+    height: 70vh;
+  }
+}

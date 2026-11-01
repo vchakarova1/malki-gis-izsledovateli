@@ -63,6 +63,7 @@
 }
 
 .profile-action {
+  display: block;
   background: #d58a3c;
   border: 1px solid #d58a3c;
   border-radius: 0.75rem;
@@ -71,6 +72,22 @@
   margin-top: 1.5rem;
   padding: 0.7rem 1rem;
   width: 100%;
+}
+
+.profile-action-secondary {
+  background: #648260;
+  border-color: #648260;
+  color: #fffaf0;
+  text-align: center;
+  text-decoration: none;
+}
+
+.profile-action-secondary:hover,
+.profile-action-secondary:focus-visible {
+  background: #456141;
+  border-color: #456141;
+  color: #fffaf0;
+  text-decoration: none;
 }
 
 .profile-action:hover,

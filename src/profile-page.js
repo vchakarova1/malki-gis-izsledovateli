@@ -42,6 +42,7 @@ app.innerHTML = `
               <dd id="profile-created-at"></dd>
             </div>
           </dl>
+          <a class="profile-action profile-action-secondary" href="student.html">Моят работен лист</a>
           <button id="sign-out" class="profile-action" type="button">Изход</button>
         </div>
 

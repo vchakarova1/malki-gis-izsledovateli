@@ -9,7 +9,9 @@ export default defineConfig({
         missions: 'missions.html',
         auth: 'auth.html',
         profile: 'profile.html',
-        student: 'student.html'
+        student: 'student.html',
+        teacher: 'teacher.html',
+        admin: 'admin.html'
       }
     }
   },

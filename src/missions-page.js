@@ -93,7 +93,7 @@ app.innerHTML = `
               </div>
               <h3>За учители</h3>
               <p>Подготвяй и споделяй образователни идеи.</p>
-              <button class="role-button" type="button" data-role="учители">
+              <button class="role-button" type="button" data-role="учители" data-auth-link>
                 Вход за учители
               </button>
               <p class="role-status" aria-live="polite"></p>
@@ -109,7 +109,7 @@ app.innerHTML = `
               </div>
               <h3>Администрация</h3>
               <p>Грижи се за реда и развитието на платформата.</p>
-              <button class="role-button" type="button" data-role="администратори">
+              <button class="role-button" type="button" data-role="администратори" data-auth-link>
                 Вход в админ панела
               </button>
               <p class="role-status" aria-live="polite"></p>
@@ -180,13 +180,7 @@ app.innerHTML = `
 
 document.querySelectorAll('.role-button').forEach((button) => {
   button.addEventListener('click', () => {
-    if (button.hasAttribute('data-auth-link')) {
-      window.location.href = 'auth.html';
-      return;
-    }
-
-    const status = button.closest('.role-panel').querySelector('.role-status');
-    status.textContent = `Входът за ${button.dataset.role} предстои.`;
+    window.location.href = 'auth.html';
   });
 });
 

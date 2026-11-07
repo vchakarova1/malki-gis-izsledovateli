@@ -2,6 +2,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import './styles.css';
 import './auth-page.css';
 import { supabase } from './supabase-client.js';
+import { getProfileForUser, getRoleHome, getSignedInUser } from './role-access.js';
 
 const app = document.querySelector('#auth-app');
 
@@ -133,6 +134,16 @@ const setSubmitting = (form, isSubmitting) => {
       : 'Създай акаунт';
 };
 
+const redirectToDashboard = async (userId) => {
+  const { profile, error } = await getProfileForUser(supabase, userId);
+  if (error || !profile) {
+    window.location.replace('profile.html');
+    return;
+  }
+
+  window.location.replace(getRoleHome(profile.role));
+};
+
 loginTab.addEventListener('click', () => setMode('login'));
 registerTab.addEventListener('click', () => setMode('register'));
 
@@ -154,7 +165,7 @@ registerPanel.addEventListener('submit', async (event) => {
   }
 
   if (data.session) {
-    window.location.replace('profile.html');
+    await redirectToDashboard(data.session.user.id);
     return;
   }
 
@@ -167,7 +178,7 @@ loginPanel.addEventListener('submit', async (event) => {
   setSubmitting(loginPanel, true);
 
   const formData = new FormData(loginPanel);
-  const { error } = await supabase.auth.signInWithPassword({
+  const { data, error } = await supabase.auth.signInWithPassword({
     email: formData.get('email'),
     password: formData.get('password')
   });
@@ -179,5 +190,14 @@ loginPanel.addEventListener('submit', async (event) => {
     return;
   }
 
-  window.location.replace('profile.html');
+  await redirectToDashboard(data.session.user.id);
 });
+
+const redirectExistingSession = async () => {
+  const { session, profile, error } = await getSignedInUser(supabase);
+  if (session && profile && !error) {
+    window.location.replace(getRoleHome(profile.role));
+  }
+};
+
+redirectExistingSession();

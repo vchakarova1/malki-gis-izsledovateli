@@ -2,19 +2,15 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import './styles.css';
 import './profile-page.css';
 import { supabase } from './supabase-client.js';
+import { getSignedInUser, getRoleHome } from './role-access.js';
+import { renderRoleNavigation } from './role-navigation.js';
 
 const app = document.querySelector('#profile-app');
 
 app.innerHTML = `
   <div class="profile-page-shell min-vh-100 d-flex flex-column">
     <header class="site-header">
-      <nav class="container navbar py-3" aria-label="Основна навигация">
-        <a class="navbar-brand brand-mark fw-bold" href="index.html" aria-label="Към началната страница">
-          <span class="brand-icon" aria-hidden="true">🧭</span>
-          <span>Малки ГИС изследователи</span>
-        </a>
-        <a class="header-badge" href="missions.html">Към лабораторията</a>
-      </nav>
+      <div id="role-navigation"></div>
     </header>
 
     <main class="container flex-grow-1 py-4 py-md-5">
@@ -42,7 +38,7 @@ app.innerHTML = `
               <dd id="profile-created-at"></dd>
             </div>
           </dl>
-          <a class="profile-action profile-action-secondary" href="student.html">Моят работен лист</a>
+          <a id="profile-dashboard-link" class="profile-action profile-action-secondary" href="student.html">Моето работно пространство</a>
           <button id="sign-out" class="profile-action" type="button">Изход</button>
         </div>
 
@@ -70,18 +66,7 @@ const redirectToAuth = () => {
   window.location.replace('auth.html');
 };
 
-const loadProfile = async (session) => {
-  const { data: profile, error } = await supabase
-    .from('profiles')
-    .select('id, created_at, role')
-    .eq('id', session.user.id)
-    .maybeSingle();
-
-  if (error) {
-    showError(`Профилът не може да бъде зареден: ${error.message}`);
-    return;
-  }
-
+const loadProfile = async (session, profile) => {
   if (!profile) {
     showError('Профилът още не е наличен. Опитай отново след малко или се свържи с администратор.');
     return;
@@ -89,6 +74,14 @@ const loadProfile = async (session) => {
 
   document.querySelector('#profile-email').textContent = session.user.email || 'Имейлът не е наличен';
   document.querySelector('#profile-role').textContent = profile.role || 'Неопределена';
+  const dashboardLink = document.querySelector('#profile-dashboard-link');
+  dashboardLink.href = getRoleHome(profile.role);
+  dashboardLink.textContent = {
+    student: 'Моят работен лист',
+    teacher: 'Учителско пространство',
+    admin: 'Администраторско пространство'
+  }[profile.role] || 'Моето пространство';
+  document.querySelector('#role-navigation').innerHTML = renderRoleNavigation(profile.role, 'profile');
   document.querySelector('#profile-created-at').textContent = new Date(profile.created_at).toLocaleDateString(
     'bg-BG',
     { year: 'numeric', month: 'long', day: 'numeric' }
@@ -99,19 +92,24 @@ const loadProfile = async (session) => {
 };
 
 const initializeProfile = async () => {
-  const { data, error } = await supabase.auth.getSession();
+  const { session, profile, error } = await getSignedInUser(supabase);
 
   if (error) {
     showError(`Сесията не може да бъде проверена: ${error.message}`);
     return;
   }
 
-  if (!data.session) {
+  if (!session) {
     redirectToAuth();
     return;
   }
 
-  await loadProfile(data.session);
+  if (!profile) {
+    showError('Профилът още не е наличен. Опитай отново след малко.');
+    return;
+  }
+
+  await loadProfile(session, profile);
 };
 
 signOutButton.addEventListener('click', async () => {

@@ -2,6 +2,8 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import './styles.css';
 import './student-page.css';
 import { supabase } from './supabase-client.js';
+import { requireRole } from './role-access.js';
+import { renderRoleNavigation } from './role-navigation.js';
 
 const arcgisUrl =
   'https://www.arcgis.com/apps/instant/nearby/index.html?appid=5e8bd330b9ae4519be093bd70132b790';
@@ -10,13 +12,7 @@ const app = document.querySelector('#student-app');
 app.innerHTML = `
   <div class="student-page-shell min-vh-100 d-flex flex-column">
     <header class="site-header">
-      <nav class="container navbar py-3" aria-label="Основна навигация">
-        <a class="navbar-brand brand-mark fw-bold" href="index.html" aria-label="Към началната страница">
-          <span class="brand-icon" aria-hidden="true">🧭</span>
-          <span>Малки ГИС изследователи</span>
-        </a>
-        <a class="header-badge" href="profile.html">Моят профил</a>
-      </nav>
+      <div id="role-navigation"></div>
     </header>
 
     <main class="container flex-grow-1 py-4 py-md-5">
@@ -378,31 +374,14 @@ const saveRoute = async (requestedStatus) => {
 };
 
 const initializeStudentPage = async () => {
-  const { data, error } = await supabase.auth.getSession();
-  if (error) {
-    showError(`Сесията не може да бъде проверена: ${error.message}`);
-    return;
-  }
-  if (!data.session) {
-    window.location.replace('auth.html');
-    return;
-  }
-  session = data.session;
-
-  const { data: profile, error: profileError } = await supabase
-    .from('profiles')
-    .select('id, role')
-    .eq('id', session.user.id)
-    .maybeSingle();
-
-  if (profileError || !profile) {
-    showError(profileError
-      ? `Профилът не може да бъде зареден: ${profileError.message}`
-      : 'Профилът още не е наличен. Опитай отново след малко.');
+  const user = await requireRole(supabase, ['student'], (message) => showError(`Профилът не може да бъде зареден: ${message}`));
+  if (!user) {
     return;
   }
 
-  setStudentStatus(`Готово за работа. Роля: ${profile.role || 'Неопределена'}.`);
+  session = user.session;
+  document.querySelector('#role-navigation').innerHTML = renderRoleNavigation('student', 'dashboard');
+  setStudentStatus('Готово за работа. Роля: Ученик.');
   workspace.hidden = false;
   resetForm();
   await loadRoutes();

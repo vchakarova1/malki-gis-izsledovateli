@@ -69,7 +69,16 @@ app.innerHTML = `
 
         <section id="teacher-connection" class="teacher-section" aria-labelledby="connection-title">
           <div class="teacher-section-heading"><div><p class="eyebrow mb-1">Свързване</p><h2 id="connection-title" class="h3 mb-0">Информация за свързване</h2></div></div>
-          <p class="mb-0">Учителите могат да преглеждат достъпните маршрути на свързаните ученици. Управлението на кодове за свързване е запазено за администратора; тук няма генериране, смяна или отнемане на кодове.</p>
+          <p>Генерирайте код и го предоставете на учениците, които трябва да се свържат с вас.</p>
+          <p class="teacher-notice teacher-notice-warning">Генерирането на нов код обезсилва предишния. Учениците, които още не са се присъединили, трябва да използват най-новия код.</p>
+          <div class="teacher-form-actions">
+            <button id="teacher-generate-join-code" class="btn teacher-button-primary" data-operation="rotate-join-code" type="button">Генерирай код за свързване</button>
+            <span id="teacher-join-code-status" class="teacher-operation-status" role="status" aria-live="polite"></span>
+          </div>
+          <div id="teacher-join-code-result" class="teacher-join-code-result" hidden>
+            <div><span class="teacher-muted small d-block">Вашият код за свързване</span><code id="teacher-join-code-value" class="teacher-join-code-value"></code></div>
+            <button id="teacher-copy-join-code" class="btn teacher-button-secondary" type="button" disabled>Копирай кода</button>
+          </div>
         </section>
       </div>
     </div>
@@ -88,6 +97,7 @@ const publicationStatusLabel = (value) => ({ proposed: 'Предложена', a
 const metricValue = (value, error) => error ? 'Недостъпно' : String(value);
 const isUuid = (value) => /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
 const operationLocks = new Set();
+let generatedTeacherJoinCode = '';
 let teacherId = null;
 let assignments = [];
 let recipients = [];
@@ -359,6 +369,56 @@ async function withOperation(key, formOrButton, action) {
     setBusy(key, formOrButton, false);
   }
 }
+
+const generateTeacherJoinCodeButton = document.querySelector('#teacher-generate-join-code');
+const teacherJoinCodeStatus = document.querySelector('#teacher-join-code-status');
+const teacherJoinCodeResult = document.querySelector('#teacher-join-code-result');
+const teacherJoinCodeValue = document.querySelector('#teacher-join-code-value');
+const copyTeacherJoinCodeButton = document.querySelector('#teacher-copy-join-code');
+const teacherJoinCodePattern = /^[23456789ABCDEFGHJKLMNPQRSTUVWXYZ]{5}-[23456789ABCDEFGHJKLMNPQRSTUVWXYZ]{5}$/;
+
+generateTeacherJoinCodeButton.addEventListener('click', async () => {
+  if (operationLocks.has('rotate-join-code')) return;
+
+  generatedTeacherJoinCode = '';
+  teacherJoinCodeValue.textContent = '';
+  teacherJoinCodeResult.hidden = true;
+  copyTeacherJoinCodeButton.disabled = true;
+  generateTeacherJoinCodeButton.disabled = true;
+
+  await withOperation('rotate-join-code', generateTeacherJoinCodeButton, async () => {
+    generateTeacherJoinCodeButton.textContent = 'Генериране…';
+    setOperationStatus(teacherJoinCodeStatus, 'Генерираме нов код…');
+    try {
+      const { data, error } = await supabase.rpc('teacher_rotate_my_join_code');
+      if (error) throw error;
+      if (typeof data !== 'string' || !teacherJoinCodePattern.test(data)) {
+        throw new Error('Полученият код е в неочакван формат.');
+      }
+
+      generatedTeacherJoinCode = data;
+      teacherJoinCodeValue.textContent = generatedTeacherJoinCode;
+      teacherJoinCodeResult.hidden = false;
+      copyTeacherJoinCodeButton.disabled = false;
+      setOperationStatus(teacherJoinCodeStatus, 'Кодът е генериран. Запазете го и го предоставете на учениците.', 'success');
+    } catch (error) {
+      setOperationStatus(teacherJoinCodeStatus, `Кодът не беше генериран: ${error?.message || 'Възникна неочаквана грешка.'}`, 'error');
+    } finally {
+      generateTeacherJoinCodeButton.textContent = 'Генерирай код за свързване';
+      generateTeacherJoinCodeButton.disabled = false;
+    }
+  });
+});
+
+copyTeacherJoinCodeButton.addEventListener('click', async () => {
+  if (!generatedTeacherJoinCode) return;
+  try {
+    await navigator.clipboard.writeText(generatedTeacherJoinCode);
+    setOperationStatus(teacherJoinCodeStatus, 'Кодът е копиран.', 'success');
+  } catch {
+    setOperationStatus(teacherJoinCodeStatus, 'Копирането не е достъпно в този браузър. Можете да маркирате кода и да го копирате ръчно.', 'error');
+  }
+});
 
 document.querySelector('#teacher-refresh').addEventListener('click', refreshData);
 document.querySelector('#teacher-create-assignment').addEventListener('submit', async (event) => {

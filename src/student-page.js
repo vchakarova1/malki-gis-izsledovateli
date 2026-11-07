@@ -62,6 +62,40 @@ app.innerHTML = `
 
       <div id="student-error" class="student-message student-message-error" role="alert" hidden></div>
 
+      <section id="student-tools" class="student-support-grid mb-4" aria-label="Ученически инструменти" hidden>
+        <section class="student-form-card student-join-card" aria-labelledby="join-teacher-title">
+          <div class="student-section-heading">
+            <div>
+              <p class="eyebrow mb-1">Връзка с учител</p>
+              <h2 id="join-teacher-title" class="h4 mb-0">Моят учител</h2>
+            </div>
+          </div>
+          <div class="student-card-body">
+            <p id="teacher-link-status" class="student-muted" role="status" aria-live="polite">Проверяваме връзката с учител...</p>
+            <form id="join-teacher-form" hidden>
+              <label class="form-label" for="teacher-join-code">Код за присъединяване</label>
+              <div class="student-inline-form">
+                <input id="teacher-join-code" class="form-control" name="join_code" type="text" maxlength="11" autocomplete="off" required />
+                <button id="join-teacher-button" class="student-secondary-action" type="submit">Присъедини се към учител</button>
+              </div>
+              <div id="teacher-link-message" class="student-message" role="status" aria-live="polite" hidden></div>
+            </form>
+          </div>
+        </section>
+
+        <section class="student-form-card student-assignments-card" aria-labelledby="assignments-title">
+          <div class="student-section-heading">
+            <div>
+              <p class="eyebrow mb-1">Индивидуална работа</p>
+              <h2 id="assignments-title" class="h4 mb-0">Моите задания</h2>
+            </div>
+          </div>
+          <div id="assignments-list" class="student-card-body">
+            <p class="student-muted">Зареждаме заданията...</p>
+          </div>
+        </section>
+      </section>
+
       <section id="student-workspace" hidden>
         <div class="student-layout">
           <section class="student-form-card" aria-labelledby="worksheet-title">
@@ -135,9 +169,19 @@ const submitRouteButton = document.querySelector('#submit-route');
 const cancelEditButton = document.querySelector('#cancel-edit');
 const worksheetTitle = document.querySelector('#worksheet-title');
 const worksheetMode = document.querySelector('#worksheet-mode');
+const teacherLinkStatus = document.querySelector('#teacher-link-status');
+const joinTeacherForm = document.querySelector('#join-teacher-form');
+const joinTeacherButton = document.querySelector('#join-teacher-button');
+const teacherLinkMessage = document.querySelector('#teacher-link-message');
+const assignmentsList = document.querySelector('#assignments-list');
+const studentTools = document.querySelector('#student-tools');
 let session;
 let editingRouteId = null;
 let routes = [];
+let reviewsByRoute = new Map();
+let activeAssignment = null;
+let canJoinTeacher = false;
+let isJoiningTeacher = false;
 let stopId = 0;
 
 const setStudentStatus = (text, type = 'success') => {
@@ -206,6 +250,7 @@ const createStop = (stop = {}) => {
 
 const resetForm = () => {
   editingRouteId = null;
+  activeAssignment = null;
   form.reset();
   stopsList.replaceChildren();
   createStop();
@@ -238,6 +283,7 @@ const getRouteValues = () => ({
 
 const setFormFromRoute = (route) => {
   editingRouteId = route.id;
+  activeAssignment = null;
   document.querySelector('#route-title').value = route.title;
   document.querySelector('#route-annotation').value = route.annotation || '';
   stopsList.replaceChildren();
@@ -286,6 +332,28 @@ const renderRoutes = () => {
     updated.textContent = `Последна промяна: ${new Date(route.updated_at).toLocaleDateString('bg-BG')}`;
     card.append(updated);
 
+    const review = reviewsByRoute.get(route.id);
+    if (review) {
+      const reviewPanel = document.createElement('div');
+      reviewPanel.className = 'student-review-panel';
+      const reviewTitle = document.createElement('strong');
+      const achievementLabels = {
+        beginning: 'Начално ниво',
+        developing: 'В развитие',
+        achieved: 'Постигнато',
+        excellent: 'Отлично'
+      };
+      reviewTitle.textContent = `Обратна връзка от учителя · ${achievementLabels[review.achievement_level] || review.achievement_level}`;
+      reviewPanel.append(reviewTitle);
+      if (review.feedback) {
+        const feedback = document.createElement('p');
+        feedback.className = 'mb-0 mt-2';
+        feedback.textContent = review.feedback;
+        reviewPanel.append(feedback);
+      }
+      card.append(reviewPanel);
+    }
+
     if (route.status === 'draft') {
       const editButton = document.createElement('button');
       editButton.className = 'student-secondary-action';
@@ -301,7 +369,7 @@ const renderRoutes = () => {
 const loadRoutes = async () => {
   const { data, error } = await supabase
     .from('routes')
-    .select('id, title, selected_stops, annotation, status, created_at, updated_at')
+    .select('id, title, selected_stops, annotation, status, assignment_id, created_at, updated_at')
     .eq('student_id', session.user.id)
     .order('updated_at', { ascending: false });
 
@@ -311,8 +379,145 @@ const loadRoutes = async () => {
   }
 
   routes = data || [];
+  reviewsByRoute = new Map();
+  if (routes.length) {
+    const { data: reviewRows, error: reviewError } = await supabase
+      .from('teacher_reviews')
+      .select('route_id, achievement_level, feedback, created_at')
+      .in('route_id', routes.map((route) => route.id));
+
+    if (reviewError) {
+      showError(`Обратната връзка не може да бъде заредена: ${reviewError.message}`);
+    } else {
+      reviewsByRoute = new Map((reviewRows || []).map((review) => [review.route_id, review]));
+    }
+  }
   renderRoutes();
   return true;
+};
+
+const showTeacherLinkMessage = (text, type = 'success') => {
+  teacherLinkMessage.className = `student-message student-message-${type}`;
+  teacherLinkMessage.textContent = text;
+  teacherLinkMessage.hidden = false;
+};
+
+const loadTeacherLink = async () => {
+  canJoinTeacher = false;
+  joinTeacherForm.hidden = true;
+  try {
+    const { data, error } = await supabase.rpc('student_has_teacher');
+    if (error || (data !== true && data !== false)) {
+      throw error || new Error('Неочакван отговор при проверката на връзката с учител.');
+    }
+
+    if (data === true) {
+      teacherLinkStatus.textContent = 'Вече си свързан/а с учител. Само администратор може да управлява тази връзка.';
+      teacherLinkStatus.className = 'student-muted';
+      joinTeacherForm.hidden = true;
+      return { hasTeacher: true };
+    }
+
+    teacherLinkStatus.textContent = 'Все още нямаш свързан учител. Въведи кода, който си получил/а.';
+    teacherLinkStatus.className = 'student-muted';
+    canJoinTeacher = true;
+    joinTeacherForm.hidden = false;
+    return { hasTeacher: false };
+  } catch (error) {
+    joinTeacherForm.hidden = true;
+    teacherLinkStatus.className = 'student-muted student-message student-message-error';
+    teacherLinkStatus.textContent = 'Не успяхме да проверим връзката с учител. Формата е временно скрита; опитай отново по-късно.';
+    return { hasTeacher: null, error };
+  }
+};
+
+const loadAssignments = async () => {
+  const { data: recipientRows, error: recipientError } = await supabase
+    .from('assignment_recipients')
+    .select('assignment_id, assigned_at')
+    .eq('student_id', session.user.id)
+    .order('assigned_at', { ascending: false });
+
+  if (recipientError) {
+    assignmentsList.replaceChildren();
+    const message = document.createElement('p');
+    message.className = 'student-message student-message-error';
+    message.textContent = `Заданията не могат да бъдат заредени: ${recipientError.message}`;
+    assignmentsList.append(message);
+    return;
+  }
+
+  const assignmentIds = [...new Set((recipientRows || []).map((row) => row.assignment_id))];
+  if (!assignmentIds.length) {
+    assignmentsList.innerHTML = '<p class="student-muted">Все още нямаш възложени задания.</p>';
+    return;
+  }
+
+  const { data: assignmentRows, error: assignmentError } = await supabase
+    .from('assignments')
+    .select('id, title, instructions, worksheet_template, status, published_at')
+    .in('id', assignmentIds)
+    .eq('status', 'published')
+    .order('published_at', { ascending: false });
+
+  if (assignmentError) {
+    assignmentsList.replaceChildren();
+    const message = document.createElement('p');
+    message.className = 'student-message student-message-error';
+    message.textContent = `Заданията не могат да бъдат заредени: ${assignmentError.message}`;
+    assignmentsList.append(message);
+    return;
+  }
+
+  assignmentsList.replaceChildren();
+  if (!assignmentRows?.length) {
+    assignmentsList.innerHTML = '<p class="student-muted">Нямаш активни публикувани задания.</p>';
+    return;
+  }
+
+  assignmentRows.forEach((assignment) => {
+    const card = document.createElement('article');
+    card.className = 'assignment-item';
+    const title = document.createElement('h3');
+    title.className = 'h6';
+    title.textContent = assignment.title;
+    card.append(title);
+    if (assignment.instructions) {
+      const instructions = document.createElement('p');
+      instructions.textContent = assignment.instructions;
+      card.append(instructions);
+    }
+
+    const existingRoute = routes.find((route) => route.assignment_id === assignment.id);
+    if (existingRoute?.status === 'draft') {
+      const continueButton = document.createElement('button');
+      continueButton.className = 'student-secondary-action';
+      continueButton.type = 'button';
+      continueButton.textContent = 'Продължи черновата';
+      continueButton.addEventListener('click', () => setFormFromRoute(existingRoute));
+      card.append(continueButton);
+    } else if (existingRoute) {
+      const state = document.createElement('p');
+      state.className = 'student-muted mb-0';
+      state.textContent = 'Вече има маршрут по това задание. Повторно предаване не е възможно.';
+      card.append(state);
+    } else {
+      const startButton = document.createElement('button');
+      startButton.className = 'student-primary-action';
+      startButton.type = 'button';
+      startButton.textContent = 'Започни маршрут';
+      startButton.addEventListener('click', () => {
+        resetForm();
+        activeAssignment = assignment;
+        document.querySelector('#route-title').value = assignment.title;
+        worksheetTitle.textContent = 'Маршрут по задание';
+        worksheetMode.textContent = 'Ново задание';
+        window.scrollTo({ top: document.querySelector('.student-form-card').offsetTop - 20, behavior: 'smooth' });
+      });
+      card.append(startButton);
+    }
+    assignmentsList.append(card);
+  });
 };
 
 const insertDraft = async (values) => {
@@ -348,8 +553,24 @@ const saveRoute = async (requestedStatus) => {
 
   if (editingRouteId) {
     result = await updateRoute(editingRouteId, values, requestedStatus);
+  } else if (activeAssignment) {
+    result = await supabase.rpc('create_assignment_route', {
+      p_assignment_id: activeAssignment.id,
+      p_title: values.title,
+      p_selected_stops: values.selected_stops,
+      p_annotation: values.annotation
+    });
+    if (!result.error) {
+      editingRouteId = result.data.id;
+      if (requestedStatus === 'submitted') {
+        result = await updateRoute(result.data.id, values, 'submitted');
+      }
+    }
   } else {
     result = await insertDraft(values);
+    if (!result.error && requestedStatus === 'submitted') {
+      editingRouteId = result.data.id;
+    }
     if (!result.error && requestedStatus === 'submitted') {
       result = await updateRoute(result.data.id, values, 'submitted');
     }
@@ -358,6 +579,11 @@ const saveRoute = async (requestedStatus) => {
   setFormSubmitting(false);
 
   if (result.error) {
+    if (editingRouteId && requestedStatus === 'submitted') {
+      await loadRoutes();
+      showFormMessage(`Маршрутът е запазен като чернова, но не беше предаден: ${result.error.message}`, 'error');
+      return;
+    }
     showFormMessage(`Работата не беше запазена: ${result.error.message}`, 'error');
     return;
   }
@@ -383,8 +609,10 @@ const initializeStudentPage = async () => {
   document.querySelector('#role-navigation').innerHTML = renderRoleNavigation('student', 'dashboard');
   setStudentStatus('Готово за работа. Роля: Ученик.');
   workspace.hidden = false;
+  studentTools.hidden = false;
   resetForm();
-  await loadRoutes();
+  await Promise.all([loadTeacherLink(), loadRoutes()]);
+  await loadAssignments();
 };
 
 document.querySelector('#add-stop').addEventListener('click', () => createStop());
@@ -394,6 +622,52 @@ form.addEventListener('submit', (event) => {
 });
 submitRouteButton.addEventListener('click', () => saveRoute('submitted'));
 cancelEditButton.addEventListener('click', resetForm);
+joinTeacherForm.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  if (joinTeacherForm.hidden || !canJoinTeacher || isJoiningTeacher) return;
+
+  isJoiningTeacher = true;
+  canJoinTeacher = false;
+  joinTeacherButton.disabled = true;
+  const codeInput = document.querySelector('#teacher-join-code');
+  codeInput.disabled = true;
+  const joinCode = codeInput.value.trim();
+  codeInput.value = '';
+
+  try {
+    let result;
+    try {
+      result = await supabase.rpc('join_teacher', { p_join_code: joinCode });
+    } catch (error) {
+      result = { error };
+    }
+
+    if (result.error || result.data !== true) {
+      const status = await loadTeacherLink();
+      if (status.hasTeacher === true) {
+        teacherLinkStatus.textContent = 'Проверката потвърждава, че си свързан/а с учител, но заявката за присъединяване върна грешка.';
+        teacherLinkStatus.className = 'student-status student-status-success';
+      } else if (status.hasTeacher === false) {
+        showTeacherLinkMessage('Кодът не беше приет. Провери го и опитай отново, или се обърни към учителя/администратора.', 'error');
+      } else {
+        teacherLinkStatus.textContent += ' Заявката за присъединяване не беше потвърдена; не приемаме, че връзката е създадена.';
+      }
+      return;
+    }
+
+    const status = await loadTeacherLink();
+    if (status.hasTeacher === true) {
+      teacherLinkStatus.textContent = 'Успешно се присъедини към учител.';
+      teacherLinkStatus.className = 'student-status student-status-success';
+    } else if (status.hasTeacher === false) {
+      showTeacherLinkMessage('Кодът беше приет, но връзката не се потвърди. Провери отново след малко.', 'error');
+    }
+  } finally {
+    isJoiningTeacher = false;
+    joinTeacherButton.disabled = false;
+    codeInput.disabled = false;
+  }
+});
 
 const iframe = document.querySelector('#student-map');
 const fallback = document.querySelector('#student-map-fallback');

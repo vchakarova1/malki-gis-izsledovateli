@@ -5,6 +5,9 @@ import discoverTogetherImage from './images/discover-together.png';
 import { supabase } from './supabase-client.js';
 
 const app = document.querySelector('#missions-app');
+const publicationMaterialsBucket = 'publication-materials';
+const approvedPublicationById = new Map();
+const materialObjectUrls = new Map();
 
 app.innerHTML = `
   <div class="missions-page-shell min-vh-100 d-flex flex-column">
@@ -234,6 +237,13 @@ const renderPublicationCard = (publication) => `
       <summary>Виж спирките (${Array.isArray(publication.public_stops) ? publication.public_stops.length : 0})</summary>
       ${renderPublicationStops(publication.public_stops)}
     </details>
+    ${publication.storage_path ? `
+      <div class="mission-publication-material" data-material-container>
+        <button class="btn btn-outline-secondary btn-sm" type="button" data-publication-material="${escapeHtml(publication.id)}">Покажи материал</button>
+        <p class="mission-publication-material-status" data-material-status role="status" aria-live="polite"></p>
+        <div class="mission-publication-material-preview" data-material-preview></div>
+      </div>
+    ` : ''}
   </article>
 `;
 
@@ -246,10 +256,13 @@ const loadApprovedPublications = async () => {
   try {
     const { data, error } = await supabase
       .from('approved_publications')
-      .select('id, public_title, public_description, public_stops, section_key, approved_at')
+      .select('id, public_title, public_description, public_stops, section_key, storage_path, approved_at')
       .order('approved_at', { ascending: false });
 
     if (error) throw error;
+
+    approvedPublicationById.clear();
+    (Array.isArray(data) ? data : []).forEach((publication) => approvedPublicationById.set(publication.id, publication));
 
     const publicationsBySection = new Map(containers.map(({ dataset }) => [dataset.publicationList, []]));
     (Array.isArray(data) ? data : []).forEach((publication) => {
@@ -269,5 +282,71 @@ const loadApprovedPublications = async () => {
     });
   }
 };
+
+const showPublicationMaterial = async (button) => {
+  const publication = approvedPublicationById.get(button.dataset.publicationMaterial);
+  const container = button.closest('[data-material-container]');
+  const status = container?.querySelector('[data-material-status]');
+  const preview = container?.querySelector('[data-material-preview]');
+  if (!publication?.storage_path || !container || !status || !preview) return;
+
+  button.disabled = true;
+  status.textContent = 'Зареждаме материала…';
+  try {
+    let material = materialObjectUrls.get(publication.id);
+    if (!material || material.path !== publication.storage_path) {
+      if (material) URL.revokeObjectURL(material.url);
+      const { data, error } = await supabase.storage
+        .from(publicationMaterialsBucket)
+        .download(publication.storage_path);
+      if (error) throw error;
+      material = { path: publication.storage_path, url: URL.createObjectURL(data), type: data.type };
+      materialObjectUrls.set(publication.id, material);
+    }
+
+    preview.replaceChildren();
+    const fileName = publication.storage_path.split('/').pop() || 'publication-material';
+    if (material.type.startsWith('image/')) {
+      const image = document.createElement('img');
+      image.className = 'mission-publication-material-image';
+      image.src = material.url;
+      image.alt = `Материал към ${publication.public_title || 'публикацията'}`;
+      preview.append(image);
+    } else if (material.type === 'application/pdf') {
+      const pdfLink = document.createElement('a');
+      pdfLink.href = material.url;
+      pdfLink.target = '_blank';
+      pdfLink.rel = 'noopener noreferrer';
+      pdfLink.textContent = 'Отвори PDF за преглед';
+      preview.append(pdfLink);
+    }
+
+    const downloadLink = document.createElement('a');
+    downloadLink.className = 'mission-publication-material-download';
+    downloadLink.href = material.url;
+    downloadLink.download = fileName;
+    downloadLink.textContent = 'Изтегли материала';
+    preview.append(downloadLink);
+    status.textContent = material.type.startsWith('image/')
+      ? 'Изображението е заредено.'
+      : material.type === 'application/pdf'
+        ? 'PDF файлът е готов за преглед и изтегляне.'
+        : 'Файлът е готов за изтегляне.';
+  } catch (error) {
+    status.textContent = `Материалът не се зареди. Възможно е да нямате достъп или файлът да липсва: ${error?.message || 'неизвестна грешка'}`;
+  } finally {
+    button.disabled = false;
+  }
+};
+
+document.addEventListener('click', (event) => {
+  const button = event.target.closest('[data-publication-material]');
+  if (button) showPublicationMaterial(button);
+});
+
+window.addEventListener('pagehide', () => {
+  materialObjectUrls.forEach(({ url }) => URL.revokeObjectURL(url));
+  materialObjectUrls.clear();
+});
 
 loadApprovedPublications();

@@ -224,7 +224,7 @@ function renderDashboard() {
 function renderStudents() {
   const list = document.querySelector('#teacher-student-list');
   if (sectionErrors.connectedStudents) {
-    list.innerHTML = '<div class="teacher-notice teacher-notice-error">Списъкът със свързани ученици не се зареди. Опитайте „Обнови данните“; не използваме директна заявка към чужди профили.</div>';
+    list.innerHTML = `<div class="teacher-notice teacher-notice-error">Списъкът със свързани ученици не се зареди: ${escapeHtml(sectionErrors.connectedStudents.message || 'Неизвестна грешка')}. Опитайте „Обнови данните“; не използваме директна заявка към чужди профили.</div>`;
     return;
   }
   list.innerHTML = `
@@ -300,7 +300,7 @@ function renderStops(stops) {
 function renderRoutes() {
   const list = document.querySelector('#teacher-route-list');
   if (sectionErrors.routes) {
-    list.innerHTML = '<div class="teacher-notice teacher-notice-error">Маршрутите не се заредиха. Останалите секции могат да се използват.</div>';
+    list.innerHTML = `<div class="teacher-notice teacher-notice-error">Маршрутите не се заредиха: ${escapeHtml(sectionErrors.routes.message || 'Неизвестна грешка')}. Останалите секции могат да се използват.</div>`;
     return;
   }
   if (!routes.length) {
@@ -495,7 +495,7 @@ document.querySelector('#teacher-assignment-list').addEventListener('submit', as
       return;
     }
     await withOperation(`assignment-${assignmentId}`, document.querySelector(`[data-assignment-card="${assignmentId}"]`), async () => {
-      const failedStudentIds = [];
+      const failedRecipients = [];
       for (let index = 0; index < studentIdsToAdd.length; index += 1) {
         setOperationStatus(status, `Добавяме избраните ученици (${index + 1}/${studentIdsToAdd.length})…`);
         try {
@@ -503,17 +503,17 @@ document.querySelector('#teacher-assignment-list').addEventListener('submit', as
             p_assignment_id: assignmentId,
             p_student_id: studentIdsToAdd[index]
           });
-          if (error) failedStudentIds.push(studentIdsToAdd[index]);
-        } catch {
-          failedStudentIds.push(studentIdsToAdd[index]);
+          if (error) failedRecipients.push({ studentId: studentIdsToAdd[index], message: error.message || 'Supabase не върна описание на грешката.' });
+        } catch (error) {
+          failedRecipients.push({ studentId: studentIdsToAdd[index], message: error?.message || String(error) });
         }
       }
       form.reset();
-      const batchState = failedStudentIds.length
+      const batchState = failedRecipients.length
         ? {
-          pendingIds: failedStudentIds,
+          pendingIds: failedRecipients.map(({ studentId }) => studentId),
           kind: 'error',
-          message: `${failedStudentIds.length} от ${studentIdsToAdd.length} добавяния не бяха потвърдени. Неуспешните ID ще останат избрани; публикуването е блокирано до успешно повторение.`
+          message: `${failedRecipients.length} от ${studentIdsToAdd.length} добавяния не бяха потвърдени. Причини: ${failedRecipients.map(({ studentId, message }) => `${studentId}: ${message}`).join(' | ')}. Неуспешните ID ще останат избрани; публикуването е блокирано до успешно повторение.`
         }
         : {
           pendingIds: [],

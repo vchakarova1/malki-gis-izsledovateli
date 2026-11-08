@@ -38,6 +38,34 @@ app.innerHTML = `
               <p class="admin-muted">Зареждаме предложенията...</p>
             </div>
           </section>
+          <section class="admin-storage-section" aria-labelledby="storage-title">
+            <div class="admin-section-heading">
+              <div>
+                <p class="eyebrow mb-1">Файлове към публикациите</p>
+                <h2 id="storage-title" class="h3 mb-0">Материали (Storage)</h2>
+              </div>
+            </div>
+            <form id="admin-storage-form" class="admin-storage-form">
+              <div class="row g-3">
+                <div class="col-12">
+                  <label class="form-label" for="admin-storage-publication">Публикация</label>
+                  <select class="form-select" id="admin-storage-publication" name="publicationId" required>
+                    <option value="">Изберете предложена публикация</option>
+                  </select>
+                </div>
+                <div class="col-12">
+                  <p id="admin-storage-current" class="admin-muted mb-0" aria-live="polite">Изберете публикация, за да видите прикачения материал.</p>
+                </div>
+                <div class="col-12">
+                  <label class="form-label" for="admin-storage-file">PDF или изображение</label>
+                  <input class="form-control" id="admin-storage-file" name="publicationMaterial" type="file" accept="application/pdf,image/png,image/jpeg,image/webp" required>
+                  <p class="admin-muted small mt-1 mb-0">PDF, PNG, JPEG или WebP; до 50 MiB. Качването заменя текущия материал.</p>
+                </div>
+              </div>
+              <p id="admin-storage-status" class="admin-operation-status" role="status" aria-live="polite"></p>
+              <button id="admin-storage-upload" class="btn admin-button-secondary" type="submit" disabled>Качи или замени материала</button>
+            </form>
+          </section>
         </div>
       </section>
     </main>
@@ -48,7 +76,21 @@ const status = document.querySelector('#admin-status');
 const adminContent = document.querySelector('#admin-content');
 const publicationList = document.querySelector('#admin-publication-list');
 const refreshButton = document.querySelector('#admin-refresh');
+const storageForm = document.querySelector('#admin-storage-form');
+const storagePublicationSelect = document.querySelector('#admin-storage-publication');
+const storageCurrentMaterial = document.querySelector('#admin-storage-current');
+const storageFileInput = document.querySelector('#admin-storage-file');
+const storageStatus = document.querySelector('#admin-storage-status');
+const storageUploadButton = document.querySelector('#admin-storage-upload');
 const busyPublicationIds = new Set();
+const publicationMaterialsBucket = 'publication-materials';
+const allowedMaterialTypes = new Map([
+  ['application/pdf', 'pdf'],
+  ['image/png', 'png'],
+  ['image/jpeg', 'jpg'],
+  ['image/webp', 'webp']
+]);
+const maxMaterialSize = 50 * 1024 * 1024;
 let publications = [];
 
 const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (character) => ({
@@ -150,12 +192,13 @@ const renderPublications = () => {
 };
 
 const loadPublications = async ({ announce = false } = {}) => {
+  const selectedPublicationId = storagePublicationSelect.value;
   refreshButton.disabled = true;
   publicationList.innerHTML = '<p class="admin-muted">Зареждаме предложенията...</p>';
   try {
     const { data, error } = await supabase
       .from('publications')
-      .select('id, route_id, proposed_by, status, public_title, public_description, public_stops, public_annotation, section_key, admin_note, created_at')
+      .select('id, route_id, proposed_by, status, public_title, public_description, public_stops, public_annotation, section_key, storage_path, admin_note, created_at')
       .eq('status', 'proposed')
       .order('created_at', { ascending: true });
 
@@ -163,12 +206,16 @@ const loadPublications = async ({ announce = false } = {}) => {
 
     publications = Array.isArray(data) ? data.filter(({ status: publicationStatus }) => publicationStatus === 'proposed') : [];
     renderPublications();
+    renderStoragePublicationOptions(selectedPublicationId);
     if (announce) setStatus('Списъкът с предложения е обновен.', 'success');
     else setStatus(`Достъпът е потвърден за администратор. Заредени предложения: ${publications.length}.`, 'success');
+    return true;
   } catch (error) {
     publications = [];
     publicationList.innerHTML = '<div class="admin-notice-error">Предложенията не се заредиха. Проверете достъпа и опитайте отново.</div>';
+    renderStoragePublicationOptions();
     setStatus(`Грешка при зареждането: ${error?.message || 'Връзката не отговори.'}`, 'error');
+    return false;
   } finally {
     refreshButton.disabled = false;
   }
@@ -186,6 +233,127 @@ const setCardBusy = (card, isBusy, message = '', kind = '') => {
 };
 
 const getPublication = (publicationId) => publications.find(({ id }) => id === publicationId);
+
+const setStorageStatus = (message, kind = '') => {
+  storageStatus.className = `admin-operation-status${kind ? ` is-${kind}` : ''}`;
+  storageStatus.textContent = message;
+};
+
+const updateStorageSelection = () => {
+  const publication = getPublication(storagePublicationSelect.value);
+  const hasValidSection = sections.some(({ value }) => value === publication?.section_key);
+  storageCurrentMaterial.textContent = publication?.storage_path
+    ? `Прикачен материал: ${publication.storage_path.split('/').at(-1)}`
+    : publication
+      ? 'Към тази публикация все още няма прикачен материал.'
+      : publications.length
+        ? 'Изберете публикация, за да видите прикачения материал.'
+        : 'Няма предложени публикации за прикачване на материал.';
+
+  storageUploadButton.disabled = !publication || !hasValidSection || !storageFileInput.files?.length;
+  if (publication && !hasValidSection) {
+    setStorageStatus('Първо изберете и запазете тематична секция в редактора на предложението.');
+  } else if (!publication) {
+    setStorageStatus('');
+  }
+};
+
+const renderStoragePublicationOptions = (selectedPublicationId = '') => {
+  const options = publications.map((publication) => {
+    const title = publication.public_title?.trim() || 'Публикация без заглавие';
+    return `<option value="${escapeHtml(publication.id)}">${escapeHtml(title)} · ${escapeHtml(publication.id.slice(0, 8))}</option>`;
+  }).join('');
+  storagePublicationSelect.innerHTML = `<option value="">${publications.length ? 'Изберете предложена публикация' : 'Няма предложения за материали'}</option>${options}`;
+  if (publications.some(({ id }) => id === selectedPublicationId)) {
+    storagePublicationSelect.value = selectedPublicationId;
+  }
+  storagePublicationSelect.disabled = publications.length === 0;
+  storageFileInput.disabled = publications.length === 0;
+  updateStorageSelection();
+};
+
+const setStorageBusy = (isBusy) => {
+  storagePublicationSelect.disabled = isBusy || publications.length === 0;
+  storageFileInput.disabled = isBusy || publications.length === 0;
+  storageUploadButton.disabled = isBusy || !getPublication(storagePublicationSelect.value)
+    || !sections.some(({ value }) => value === getPublication(storagePublicationSelect.value)?.section_key)
+    || !storageFileInput.files?.length;
+};
+
+const uploadPublicationMaterial = async (publication, file) => {
+  const previousStoragePath = publication.storage_path;
+  const extension = allowedMaterialTypes.get(file.type);
+  const storagePath = `${publication.id}/${crypto.randomUUID()}.${extension}`;
+  setStorageBusy(true);
+  setStorageStatus('Качваме материала…');
+
+  let uploadError;
+  try {
+    ({ error: uploadError } = await supabase.storage
+      .from(publicationMaterialsBucket)
+      .upload(storagePath, file, { contentType: file.type, upsert: false }));
+  } catch (error) {
+    uploadError = error;
+  }
+  if (uploadError) {
+    setStorageStatus(`Качването не успя: ${uploadError.message || 'неизвестна грешка'}. Проверете правата и опитайте отново.`, 'error');
+    setStorageBusy(false);
+    return;
+  }
+
+  let linkError;
+  try {
+    ({ error: linkError } = await supabase.rpc('edit_publication', {
+      p_publication_id: publication.id,
+      p_public_title: publication.public_title,
+      p_public_description: publication.public_description,
+      p_public_stops: publication.public_stops,
+      p_section_key: publication.section_key,
+      p_public_annotation: publication.public_annotation,
+      p_storage_path_action: 'set',
+      p_storage_path: storagePath
+    }));
+  } catch (error) {
+    linkError = error;
+  }
+
+  if (linkError) {
+    let cleanupError;
+    try {
+      ({ error: cleanupError } = await supabase.storage
+        .from(publicationMaterialsBucket)
+        .remove([storagePath]));
+    } catch (error) {
+      cleanupError = error;
+    }
+    const cleanupMessage = cleanupError
+      ? ' Каченият файл може да остане неприкачен; необходимо е последващо почистване.'
+      : ' Каченият файл беше премахнат, защото не можа да се прикачи.';
+    setStorageStatus(`Файлът се качи, но пътят не се запази: ${linkError.message || 'неизвестна грешка'}.${cleanupMessage}`, 'error');
+    setStorageBusy(false);
+    return;
+  }
+
+  let replacementMessage = '';
+  if (previousStoragePath && previousStoragePath !== storagePath) {
+    let removeOldError;
+    try {
+      ({ error: removeOldError } = await supabase.storage
+        .from(publicationMaterialsBucket)
+        .remove([previousStoragePath]));
+    } catch (error) {
+      removeOldError = error;
+    }
+    if (removeOldError) replacementMessage = ` Новият материал е прикачен, но старият не беше премахнат: ${removeOldError.message}`;
+  }
+
+  const refreshed = await loadPublications();
+  storageFileInput.value = '';
+  updateStorageSelection();
+  const statusMessage = `Материалът е качен и прикачен към публикацията.${replacementMessage}`;
+  setStorageStatus(refreshed ? statusMessage : `${statusMessage} Списъкът с публикации не можа да се обнови.`, replacementMessage ? 'error' : refreshed ? 'success' : 'error');
+  setStorageBusy(false);
+};
 
 const withPublicationLock = async (card, operation) => {
   const publicationId = card.dataset.publicationId;
@@ -226,6 +394,41 @@ if (admin) {
   adminContent.hidden = false;
 
   refreshButton.addEventListener('click', () => loadPublications({ announce: true }));
+  storagePublicationSelect.addEventListener('change', updateStorageSelection);
+  storageFileInput.addEventListener('change', updateStorageSelection);
+
+  storageForm.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const publication = getPublication(storagePublicationSelect.value);
+    const file = storageFileInput.files?.[0];
+    if (!publication || !file) {
+      setStorageStatus('Изберете публикация и файл.', 'error');
+      return;
+    }
+    if (busyPublicationIds.has(publication.id)) {
+      setStorageStatus('За тази публикация вече се изпълнява операция.', 'error');
+      return;
+    }
+    if (!allowedMaterialTypes.has(file.type)) {
+      setStorageStatus('Файлът трябва да е PDF, PNG, JPEG или WebP.', 'error');
+      return;
+    }
+    if (file.size > maxMaterialSize) {
+      setStorageStatus('Файлът надвишава лимита от 50 MiB.', 'error');
+      return;
+    }
+    if (!sections.some(({ value }) => value === publication.section_key)) {
+      setStorageStatus('Първо изберете и запазете тематична секция в редактора на предложението.', 'error');
+      return;
+    }
+
+    busyPublicationIds.add(publication.id);
+    try {
+      await uploadPublicationMaterial(publication, file);
+    } finally {
+      busyPublicationIds.delete(publication.id);
+    }
+  });
 
   publicationList.addEventListener('submit', async (event) => {
     const form = event.target.closest('[data-edit-form]');

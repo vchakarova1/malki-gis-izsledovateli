@@ -28,6 +28,25 @@
   padding-bottom: 1rem;
 }
 
+.admin-storage-section {
+  border-top: 1px solid #e7dccb;
+  margin-top: 2rem;
+  padding-top: 2rem;
+}
+
+.admin-storage-form {
+  background: rgba(255, 253, 248, 0.9);
+  border: 1px solid #eee5d6;
+  border-radius: 1rem;
+  box-shadow: 0 0.5rem 1.5rem rgba(110, 82, 54, 0.06);
+  padding: clamp(1rem, 3vw, 1.5rem);
+}
+
+.admin-storage-form .form-label {
+  color: #5f4031;
+  font-weight: 700;
+}
+
 .admin-publication-list {
   display: grid;
   gap: 1.25rem;
@@ -222,6 +241,10 @@
   padding: 0.75rem 0.9rem;
 }
 
+.admin-operation-status.is-success {
+  color: #456141;
+}
+
 .admin-empty-state {
   background: #fffaf2;
   border: 1px dashed #d9c9b2;
@@ -234,6 +257,10 @@
 @media (max-width: 575.98px) {
   .admin-card-actions > .btn,
   .admin-section-heading > .btn {
+    width: 100%;
+  }
+
+  .admin-storage-form > .btn {
     width: 100%;
   }
 

@@ -426,7 +426,7 @@ const loadTeacherLink = async () => {
   } catch (error) {
     joinTeacherForm.hidden = true;
     teacherLinkStatus.className = 'student-muted student-message student-message-error';
-    teacherLinkStatus.textContent = 'Не успяхме да проверим връзката с учител. Формата е временно скрита; опитай отново по-късно.';
+    teacherLinkStatus.textContent = `Не успяхме да проверим връзката с учител: ${error?.message || 'Неизвестна грешка'}. Формата е временно скрита; опитай отново по-късно.`;
     return { hasTeacher: null, error };
   }
 };
@@ -645,12 +645,21 @@ joinTeacherForm.addEventListener('submit', async (event) => {
     if (result.error || result.data !== true) {
       const status = await loadTeacherLink();
       if (status.hasTeacher === true) {
-        teacherLinkStatus.textContent = 'Проверката потвърждава, че си свързан/а с учител, но заявката за присъединяване върна грешка.';
+        teacherLinkStatus.textContent = 'Вече си свързан/а с учител. Присъединяването не се повтаря.';
         teacherLinkStatus.className = 'student-status student-status-success';
       } else if (status.hasTeacher === false) {
-        showTeacherLinkMessage('Кодът не беше приет. Провери го и опитай отново, или се обърни към учителя/администратора.', 'error');
+        if (result.error?.code === '42501') {
+          showTeacherLinkMessage(`Присъединяването беше отказано. Кодът може да е невалиден или изтекъл, или профилът да не отговаря на условията. Детайл: ${result.error.message || 'SQLSTATE 42501'}`, 'error');
+        } else if (result.error) {
+          showTeacherLinkMessage(`RPC грешка при присъединяването: ${result.error.message || String(result.error)}${result.error.code ? ` (${result.error.code})` : ''}`, 'error');
+        } else {
+          showTeacherLinkMessage('Кодът е невалиден или изтекъл; RPC не потвърди присъединяването.', 'error');
+        }
       } else {
-        teacherLinkStatus.textContent += ' Заявката за присъединяване не беше потвърдена; не приемаме, че връзката е създадена.';
+        const rpcDetail = result.error
+          ? `RPC грешка: ${result.error.message || String(result.error)}${result.error.code ? ` (${result.error.code})` : ''}. `
+          : 'RPC не върна true. ';
+        teacherLinkStatus.textContent = `${teacherLinkStatus.textContent} ${rpcDetail}Не успяхме да потвърдим връзката.`;
       }
       return;
     }

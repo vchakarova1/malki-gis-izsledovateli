@@ -2,8 +2,12 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import './styles.css';
 import './missions-page.css';
 import discoverTogetherImage from './images/discover-together.png';
+import { supabase } from './supabase-client.js';
 
 const app = document.querySelector('#missions-app');
+const publicationMaterialsBucket = 'publication-materials';
+const approvedPublicationById = new Map();
+const materialObjectUrls = new Map();
 
 app.innerHTML = `
   <div class="missions-page-shell min-vh-100 d-flex flex-column">
@@ -76,7 +80,7 @@ app.innerHTML = `
               </div>
               <h3>За ученици</h3>
               <p>Откривай, учи и създавай свои идеи.</p>
-              <button class="role-button" type="button" data-role="ученици">
+              <button class="role-button" type="button" data-role="ученици" data-auth-link>
                 Вход за ученици
               </button>
               <p class="role-status" aria-live="polite"></p>
@@ -93,7 +97,7 @@ app.innerHTML = `
               </div>
               <h3>За учители</h3>
               <p>Подготвяй и споделяй образователни идеи.</p>
-              <button class="role-button" type="button" data-role="учители">
+              <button class="role-button" type="button" data-role="учители" data-auth-link>
                 Вход за учители
               </button>
               <p class="role-status" aria-live="polite"></p>
@@ -109,7 +113,7 @@ app.innerHTML = `
               </div>
               <h3>Администрация</h3>
               <p>Грижи се за реда и развитието на платформата.</p>
-              <button class="role-button" type="button" data-role="администратори">
+              <button class="role-button" type="button" data-role="администратори" data-auth-link>
                 Вход в админ панела
               </button>
               <p class="role-status" aria-live="polite"></p>
@@ -127,43 +131,47 @@ app.innerHTML = `
         </div>
         <div class="row g-4">
           <div class="col-md-6">
-            <article class="mission-card h-100">
+            <article class="mission-card h-100" data-publication-section="missions">
               <span class="mission-card-mark" aria-hidden="true">01</span>
               <h3>Актуални мисии</h3>
               <p class="mb-0">
                 Пространство за бъдещи образователни мисии, чрез които учениците
                 ще изследват България, литературата, дигиталните умения и света около тях.
               </p>
+              <div class="mission-publications" data-publication-list="missions" aria-live="polite"><p class="mission-publications-state">Зареждаме одобрените публикации...</p></div>
             </article>
           </div>
           <div class="col-md-6">
-            <article class="mission-card h-100">
+            <article class="mission-card h-100" data-publication-section="challenges">
               <span class="mission-card-mark" aria-hidden="true">02</span>
               <h3>Изследователски предизвикателства</h3>
               <p class="mb-0">
                 Място за бъдещи любопитни въпроси и предизвикателства, които насърчават
                 наблюдението, проучването, логическото мислене и откриването на връзки.
               </p>
+              <div class="mission-publications" data-publication-list="challenges" aria-live="polite"><p class="mission-publications-state">Зареждаме одобрените публикации...</p></div>
             </article>
           </div>
           <div class="col-md-6">
-            <article class="mission-card h-100">
+            <article class="mission-card h-100" data-publication-section="projects">
               <span class="mission-card-mark" aria-hidden="true">03</span>
               <h3>Проекти и творчески идеи</h3>
               <p class="mb-0">
                 Пространство за бъдещи индивидуални и екипни проекти, в които учениците
                 ще могат да съчетават знания, въображение и дигитални инструменти.
               </p>
+              <div class="mission-publications" data-publication-list="projects" aria-live="polite"><p class="mission-publications-state">Зареждаме одобрените публикации...</p></div>
             </article>
           </div>
           <div class="col-md-6">
-            <article class="mission-card h-100">
+            <article class="mission-card h-100" data-publication-section="discoveries">
               <span class="mission-card-mark" aria-hidden="true">04</span>
               <h3>Моите открития</h3>
               <p class="mb-0">
                 Бъдещо място за лични ученически впечатления, размисли и споделяне
                 на наученото.
               </p>
+              <div class="mission-publications" data-publication-list="discoveries" aria-live="polite"><p class="mission-publications-state">Зареждаме одобрените публикации...</p></div>
             </article>
           </div>
         </div>
@@ -180,8 +188,7 @@ app.innerHTML = `
 
 document.querySelectorAll('.role-button').forEach((button) => {
   button.addEventListener('click', () => {
-    const status = button.closest('.role-panel').querySelector('.role-status');
-    status.textContent = `Входът за ${button.dataset.role} предстои.`;
+    window.location.href = 'auth.html';
   });
 });
 
@@ -198,3 +205,148 @@ document
 document
   .querySelector('.missions-hero-button-secondary')
   .addEventListener('click', () => scrollToSection('roles-section'));
+
+const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (character) => ({
+  '&': '&amp;',
+  '<': '&lt;',
+  '>': '&gt;',
+  '"': '&quot;',
+  "'": '&#39;'
+})[character]);
+
+const renderPublicationStops = (stops) => {
+  if (!Array.isArray(stops) || !stops.length) {
+    return '<p class="mission-publication-muted mb-0">Няма публикувани спирки.</p>';
+  }
+
+  return `<ol class="mission-publication-stops">${stops.map((stop) => `
+    <li>
+      <strong>${escapeHtml(stop?.name || 'Без име')}</strong>
+      ${stop?.settlement ? `<span> · ${escapeHtml(stop.settlement)}</span>` : ''}
+      ${stop?.latitude != null && stop?.longitude != null ? `<span class="mission-publication-coordinates">${escapeHtml(stop.latitude)}, ${escapeHtml(stop.longitude)}</span>` : ''}
+      ${stop?.note ? `<p class="mb-0">${escapeHtml(stop.note)}</p>` : ''}
+    </li>
+  `).join('')}</ol>`;
+};
+
+const renderPublicationCard = (publication) => `
+  <article class="mission-publication-card">
+    <h4>${escapeHtml(publication.public_title || 'Публикация без заглавие')}</h4>
+    <p class="mission-publication-description">${escapeHtml(publication.public_description || 'Няма описание.')}</p>
+    <details>
+      <summary>Виж спирките (${Array.isArray(publication.public_stops) ? publication.public_stops.length : 0})</summary>
+      ${renderPublicationStops(publication.public_stops)}
+    </details>
+    ${publication.storage_path ? `
+      <div class="mission-publication-material" data-material-container>
+        <button class="btn btn-outline-secondary btn-sm" type="button" data-publication-material="${escapeHtml(publication.id)}">Покажи материал</button>
+        <p class="mission-publication-material-status" data-material-status role="status" aria-live="polite"></p>
+        <div class="mission-publication-material-preview" data-material-preview></div>
+      </div>
+    ` : ''}
+  </article>
+`;
+
+const loadApprovedPublications = async () => {
+  const containers = [...document.querySelectorAll('[data-publication-list]')];
+  containers.forEach((container) => {
+    container.innerHTML = '<p class="mission-publications-state">Зареждаме одобрените публикации...</p>';
+  });
+
+  try {
+    const { data, error } = await supabase
+      .from('approved_publications')
+      .select('id, public_title, public_description, public_stops, section_key, storage_path, approved_at')
+      .order('approved_at', { ascending: false });
+
+    if (error) throw error;
+
+    approvedPublicationById.clear();
+    (Array.isArray(data) ? data : []).forEach((publication) => approvedPublicationById.set(publication.id, publication));
+
+    const publicationsBySection = new Map(containers.map(({ dataset }) => [dataset.publicationList, []]));
+    (Array.isArray(data) ? data : []).forEach((publication) => {
+      const sectionPublications = publicationsBySection.get(publication.section_key);
+      if (sectionPublications) sectionPublications.push(publication);
+    });
+
+    containers.forEach((container) => {
+      const publications = publicationsBySection.get(container.dataset.publicationList) || [];
+      container.innerHTML = publications.length
+        ? publications.map(renderPublicationCard).join('')
+        : '<p class="mission-publications-state">В тази секция все още няма одобрени публикации.</p>';
+    });
+  } catch {
+    containers.forEach((container) => {
+      container.innerHTML = '<p class="mission-publications-state mission-publications-error">Одобрените публикации не се заредиха. Опитайте отново по-късно.</p>';
+    });
+  }
+};
+
+const showPublicationMaterial = async (button) => {
+  const publication = approvedPublicationById.get(button.dataset.publicationMaterial);
+  const container = button.closest('[data-material-container]');
+  const status = container?.querySelector('[data-material-status]');
+  const preview = container?.querySelector('[data-material-preview]');
+  if (!publication?.storage_path || !container || !status || !preview) return;
+
+  button.disabled = true;
+  status.textContent = 'Зареждаме материала…';
+  try {
+    let material = materialObjectUrls.get(publication.id);
+    if (!material || material.path !== publication.storage_path) {
+      if (material) URL.revokeObjectURL(material.url);
+      const { data, error } = await supabase.storage
+        .from(publicationMaterialsBucket)
+        .download(publication.storage_path);
+      if (error) throw error;
+      material = { path: publication.storage_path, url: URL.createObjectURL(data), type: data.type };
+      materialObjectUrls.set(publication.id, material);
+    }
+
+    preview.replaceChildren();
+    const fileName = publication.storage_path.split('/').pop() || 'publication-material';
+    if (material.type.startsWith('image/')) {
+      const image = document.createElement('img');
+      image.className = 'mission-publication-material-image';
+      image.src = material.url;
+      image.alt = `Материал към ${publication.public_title || 'публикацията'}`;
+      preview.append(image);
+    } else if (material.type === 'application/pdf') {
+      const pdfLink = document.createElement('a');
+      pdfLink.href = material.url;
+      pdfLink.target = '_blank';
+      pdfLink.rel = 'noopener noreferrer';
+      pdfLink.textContent = 'Отвори PDF за преглед';
+      preview.append(pdfLink);
+    }
+
+    const downloadLink = document.createElement('a');
+    downloadLink.className = 'mission-publication-material-download';
+    downloadLink.href = material.url;
+    downloadLink.download = fileName;
+    downloadLink.textContent = 'Изтегли материала';
+    preview.append(downloadLink);
+    status.textContent = material.type.startsWith('image/')
+      ? 'Изображението е заредено.'
+      : material.type === 'application/pdf'
+        ? 'PDF файлът е готов за преглед и изтегляне.'
+        : 'Файлът е готов за изтегляне.';
+  } catch (error) {
+    status.textContent = `Материалът не се зареди. Възможно е да нямате достъп или файлът да липсва: ${error?.message || 'неизвестна грешка'}`;
+  } finally {
+    button.disabled = false;
+  }
+};
+
+document.addEventListener('click', (event) => {
+  const button = event.target.closest('[data-publication-material]');
+  if (button) showPublicationMaterial(button);
+});
+
+window.addEventListener('pagehide', () => {
+  materialObjectUrls.forEach(({ url }) => URL.revokeObjectURL(url));
+  materialObjectUrls.clear();
+});
+
+loadApprovedPublications();

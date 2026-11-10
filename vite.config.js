@@ -6,7 +6,12 @@ export default defineConfig({
       input: {
         main: 'index.html',
         map: 'map.html',
-        missions: 'missions.html'
+        missions: 'missions.html',
+        auth: 'auth.html',
+        profile: 'profile.html',
+        student: 'student.html',
+        teacher: 'teacher.html',
+        admin: 'admin.html'
       }
     }
   },

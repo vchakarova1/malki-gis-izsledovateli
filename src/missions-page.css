@@ -242,6 +242,103 @@
   line-height: 1.6;
 }
 
+.mission-publications {
+  border-top: 1px solid #eee5d6;
+  margin-top: 1.25rem;
+  padding-top: 1rem;
+}
+
+.mission-publications-state,
+.mission-publication-muted {
+  color: #75695d;
+  font-size: 0.9rem;
+  margin-bottom: 0;
+}
+
+.mission-publications-error {
+  color: #8a342c;
+}
+
+.mission-publication-card + .mission-publication-card {
+  border-top: 1px solid #eee5d6;
+  margin-top: 1rem;
+  padding-top: 1rem;
+}
+
+.mission-publication-material {
+  border-top: 1px solid #eee5d6;
+  display: grid;
+  gap: 0.65rem;
+  margin-top: 1rem;
+  padding-top: 0.85rem;
+}
+
+.mission-publication-material-status {
+  color: #75695d;
+  font-size: 0.88rem;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.mission-publication-material-preview {
+  display: grid;
+  gap: 0.75rem;
+  justify-items: start;
+  min-width: 0;
+}
+
+.mission-publication-material-image {
+  border: 1px solid #eee5d6;
+  border-radius: 0.5rem;
+  height: auto;
+  max-height: 30rem;
+  max-width: 100%;
+  object-fit: contain;
+}
+
+.mission-publication-material-download {
+  color: #76513e;
+  font-weight: 700;
+}
+
+.mission-publication-card h4 {
+  color: #5f4031;
+  font-size: 1.05rem;
+  margin-bottom: 0.4rem;
+}
+
+.mission-publication-description {
+  color: #4d4036 !important;
+  margin-bottom: 0.6rem;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.mission-publication-card details summary {
+  color: #76513e;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.mission-publication-stops {
+  display: grid;
+  gap: 0.65rem;
+  margin: 0.75rem 0 0;
+  padding-left: 1.25rem;
+}
+
+.mission-publication-stops li {
+  color: #4d4036;
+  overflow-wrap: anywhere;
+}
+
+.mission-publication-coordinates {
+  color: #75695d;
+  display: block;
+  font-size: 0.82rem;
+}
+
 @media (max-width: 767.98px) {
   .missions-hero {
     align-items: stretch;
